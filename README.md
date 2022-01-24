@@ -26,4 +26,4 @@ fn main() {
     }
 }
 ```
-![Image](data/screenshot_o1.png "screenshot")
+![Image](data/screenshot_01.png "screenshot")
