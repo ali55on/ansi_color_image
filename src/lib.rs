@@ -21,7 +21,7 @@ impl ImageColorMap {
         brightness: Option<i32>
     ) -> ImageColorMap {
         let url_image = String::from(url_image);
-        
+
         ImageColorMap {
             url_image,
             height,
@@ -96,6 +96,7 @@ impl ImageColorMap {
                 (0.2126 * r as f64) + (0.7152 * g as f64) + (0.0722 * b as f64)) as f64;
 
             let ascii_chars = [" ", " ", ":", "i", "/", "n", "k", "m", "0", "@", "#"];
+            // let ascii_chars = ["#", "@", "0", "m", "k", "n", "/", "i", ":", " ", " "];
             let ascii_chars_index =(
                 (brightness_ / 255.0) * (ascii_chars.len() - 1) as f64).round() as usize;
 
