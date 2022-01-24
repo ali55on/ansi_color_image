@@ -1,3 +1,28 @@
+//! ansi_color_image
+//! 
+//! Lib to create figures with text characters and ANSI colors from an image file.
+//! 
+//! [github](https://github.com/w-a-gomes/ansi_color_image 'github')
+//! 
+//! ```
+//! use ansi_color_image as aci;
+//! 
+//! fn main() {
+//!     let url = "/usr/share/pixmaps/neon.png";
+//!     let mut img = aci::ImageColorMap::new(url, Some(20), Some(40), Some(20.0), Some(-15));
+//!     //                                   image height    width     contrast    brightness
+//! 
+//!     for pixel_line in img.build_pixel_map() {  // pixel_line = [pixel, pixel, pixel]
+//!         for pixel in pixel_line {  //  pixel = ("*", (255, 255, 255), "\x1b[38;2;0;0;0m")
+//!             let (txt, _convenient_rgb, ansi_code) = pixel;
+//!             print!("{}{}", ansi_code, txt);  // Print without newline
+//!         }
+//!         img.reset_terminal_color();  // Prevent colored cursor when finished
+//!         println!();  // New line
+//!     }
+//! }
+//! ```
+
 use image::{
     GenericImageView, open,  // Rgba, DynamicImage
     imageops::{FilterType, resize},
@@ -31,7 +56,7 @@ impl ImageColorMap {
         }
     }
 
-    pub fn build_pixel_map(&mut self) -> Vec<Vec<(String, (u8, u8, u8))>> {
+    pub fn build_pixel_map(&mut self) -> Vec<Vec<(String, (u8, u8, u8), String)>> {
         // Image
         let img = open(&self.url_image).unwrap();
 
@@ -83,7 +108,7 @@ impl ImageColorMap {
         //      [("*", (1, 2, 3)), ("*", (1, 2, 3)), ("*", (1, 2, 3))],
         //      [("*", (1, 2, 3)), ("*", (1, 2, 3)), ("*", (1, 2, 3))],
         // ]
-        let mut pixels_map: Vec<Vec<(String, (u8, u8, u8))>> = Vec::new();
+        let mut pixels_map: Vec<Vec<(String, (u8, u8, u8), String)>> = Vec::new();
         let mut count = 1;
         let mut line = 0;
 
@@ -103,10 +128,18 @@ impl ImageColorMap {
             // Update map
             if count == 1 {
                 pixels_map.push(
-                    vec![(String::from(ascii_chars[ascii_chars_index]), (r, g, b))]);
+                    vec![(
+                        String::from(ascii_chars[ascii_chars_index]),
+                        (r, g, b),
+                        self.rgb_to_ansi(r, g, b)
+                    )]
+                );
             } else {
-                pixels_map[line].push(
-                    (String::from(ascii_chars[ascii_chars_index]), (r, g, b)));
+                pixels_map[line].push((
+                    String::from(ascii_chars[ascii_chars_index]),
+                    (r, g, b),
+                    self.rgb_to_ansi(r, g, b)
+                ));
             }
 
             // Update loop config
@@ -121,7 +154,19 @@ impl ImageColorMap {
         // Return
         pixels_map
     }
+
+    pub fn reset_terminal_color(&self){
+        print!("\x1B[0m")
+    }
+
+    fn rgb_to_ansi(&self, r: u8, g: u8, b: u8) -> String {
+        format!("\x1b[38;2;{};{};{}m", r, g, b)
+    }
 }
+
+// fn rgb_to_ansi(r: u8, g: u8, b: u8, text: &String) -> String {
+//     format!("\x1b[38;2;{};{};{}m{}\x1B[0m", r, g, b, text)
+// }
 
 #[cfg(test)]
 mod tests {

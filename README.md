@@ -7,7 +7,6 @@ https://github.com/w-a-gomes/ansi_color_image
 Example:
 
 ```rust
-use ansi_term::Colour::RGB;
 use ansi_color_image as aci;
 
 fn main() {
@@ -15,11 +14,12 @@ fn main() {
     let mut img = aci::ImageColorMap::new(url, Some(20), Some(40), Some(20.0), Some(-15));
     //                                   image height    width     contrast    brightness
 
-    for pixel_line  in img.build_pixel_map() { // pixel_line  =  [pixel, pixel, pixel]
-        for pixel in pixel_line {             //  pixel       =  ("*", (255, 255, 255))   
-            let (char_, rgb) = pixel;
-            print!("{}", RGB(rgb.0, rgb.1, rgb.2).paint(char_));  // Print without newline 
+    for pixel_line in img.build_pixel_map() { // pixel_line = [pixel, pixel, pixel]
+        for pixel in pixel_line {            //  pixel = ("*", (255, 255, 255), "\x1b[38;2;0;0;0m")
+            let (txt, _convenient_rgb, ansi_code) = pixel;
+            print!("{}{}", ansi_code, txt);  // Print without newline
         }
+        img.reset_terminal_color();  // Prevent colored cursor when finished
         println!();  // New line
     }
 }
@@ -54,9 +54,10 @@ What this grim, ungainly, ghastly, gaunt, and ominous bird of yore
     for (pixel_line, poem_line) in img.build_pixel_map().iter().zip(poem.split("\n")) {
 
         for pixel in pixel_line {
-            let (char_, rgb) = pixel;
-            print!("{}", RGB(rgb.0, rgb.1, rgb.2).paint(char_));
+            let (txt, _, ansi_code) = pixel;
+            print!("{}{}", ansi_code, txt);
         }
+        img.reset_terminal_color();
         println!(" {}", poem_line);
     }
 ```
