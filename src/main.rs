@@ -2,12 +2,10 @@ use ansi_term::Colour::RGB;
 use ansi_color_image as aci;
 
 fn main() {
-    let url = String::from("/usr/share/pixmaps/neon.png");
-
-    // Create instance:                  image height    width     contrast    brightness
+    let url = "/usr/share/pixmaps/neon.png";
     let mut img = aci::ImageColorMap::new(url, Some(20), Some(40), Some(20.0), Some(-15));
+    //                                   image height    width     contrast    brightness
 
-    // Print
     for pixel_line  in img.build_pixel_map() { // pixel_line  =  [pixel, pixel, pixel]
         for pixel in pixel_line {             //  pixel       =  ("*", (255, 255, 255))   
             let (char_, rgb) = pixel;

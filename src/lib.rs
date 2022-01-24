@@ -14,13 +14,14 @@ pub struct ImageColorMap {
 
 impl ImageColorMap {
     pub fn new(
-        url_image: String, 
+        url_image: &str, 
         height: Option<u32>,
         width: Option<u32>,
         contrast: Option<f32>,
         brightness: Option<i32>
     ) -> ImageColorMap {
-
+        let url_image = String::from(url_image);
+        
         ImageColorMap {
             url_image,
             height,
@@ -127,7 +128,7 @@ mod tests {
     #[test]
     fn it_works() {
         let mut icm = ImageColorMap::new(
-            String::from("/usr/share/pixmaps/neon.png"),
+            "/usr/share/pixmaps/neon.png",
             Some(20),
             Some(40),
             None,
