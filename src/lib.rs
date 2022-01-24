@@ -1,5 +1,5 @@
 use image::{
-    GenericImageView, open, Rgba,  // DynamicImage
+    GenericImageView, open,  // Rgba, DynamicImage
     imageops::{FilterType, resize},
 };
 
@@ -77,69 +77,42 @@ impl ImageColorMap {
             new_img = image::imageops::colorops::brighten(&new_img, b);
         }
 
-        // Criar um 'Mapa' com linhas/vetores de rgb. Ex:
-        // [
-        //      [Rgba, Rgba, Rgba],
-        //      [Rgba, Rgba, Rgba],
-        // ]
-        // Cada Vetor é uma linha da imagem.
-        // Cada Rgba, é uma informação de cor (um pixel).
-        let mut map: Vec<Vec<Rgba<u8>>> = Vec::new();
-        let mut count = 1;
-        let mut line = 0;
-
-        // Iterar pixels
-        for &pixel in new_img.pixels() {
-            // Update Map
-            if count == 1 {
-                map.push(vec![pixel]);
-            } else {
-                map[line].push(pixel);    
-            }
-
-            // Update loop config
-            if count == self.width.unwrap() as usize {
-                count = 1;
-                line += 1;
-            } else {
-                count += 1;
-            }
-        }
-        
         // Return Map
+        // [
+        //      [("*", (1, 2, 3)), ("*", (1, 2, 3)), ("*", (1, 2, 3))],
+        //      [("*", (1, 2, 3)), ("*", (1, 2, 3)), ("*", (1, 2, 3))],
+        // ]
         let mut pixels_map: Vec<Vec<(String, (u8, u8, u8))>> = Vec::new();
         let mut count = 1;
         let mut line = 0;
 
-        for map_line in map {
-            for pixel_info in map_line {
-                let rgba = pixel_info;  // Rgba([3, 15, 19, 14])
-                let [r, g, b, _a] = rgba.0;
-                
-                // https://github.com/EbonJaeger/asciifyer/blob/main/src/lib.rs
-                let brightness_ = (
-                    (0.2126 * r as f64) + (0.7152 * g as f64) + (0.0722 * b as f64)) as f64;
+        for &pixel in new_img.pixels() {
+            let rgba = pixel;  // Rgba([3, 15, 19, 14])
+            let [r, g, b, _a] = rgba.0;
+            
+            // https://github.com/EbonJaeger/asciifyer/blob/main/src/lib.rs
+            let brightness_ = (
+                (0.2126 * r as f64) + (0.7152 * g as f64) + (0.0722 * b as f64)) as f64;
 
-                let ascii_chars = [" ", " ", ":", "i", "/", "n", "k", "m", "0", "@", "#"];
-                let ascii_chars_index =(
-                    (brightness_ / 255.0) * (ascii_chars.len() - 1) as f64).round() as usize;
+            let ascii_chars = [" ", " ", ":", "i", "/", "n", "k", "m", "0", "@", "#"];
+            let ascii_chars_index =(
+                (brightness_ / 255.0) * (ascii_chars.len() - 1) as f64).round() as usize;
 
-                // Update map
-                if count == 1 {
-                    pixels_map.push(
-                        vec![(String::from(ascii_chars[ascii_chars_index]), (r, g, b))]);
-                } else {
-                    pixels_map[line].push(
-                        (String::from(ascii_chars[ascii_chars_index]), (r, g, b)));
-                }
+            // Update map
+            if count == 1 {
+                pixels_map.push(
+                    vec![(String::from(ascii_chars[ascii_chars_index]), (r, g, b))]);
+            } else {
+                pixels_map[line].push(
+                    (String::from(ascii_chars[ascii_chars_index]), (r, g, b)));
+            }
 
-                // Update loop config
-                if count == self.width.unwrap() as usize {
-                    line += 1;
-                    count = 1;
-                } else {
-                    count += 1;
-                }
+            // Update loop config
+            if count == self.width.unwrap() as usize {
+                line += 1;
+                count = 1;
+            } else {
+                count += 1;
             }
         }
 
