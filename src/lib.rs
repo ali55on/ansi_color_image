@@ -5,22 +5,22 @@
 //! [github](https://github.com/w-a-gomes/ansi_color_image 'github')
 //! 
 //! ```
-//! use ansi_color_image as aci;
-//! 
-//! fn main() {
-//!     let url = "/usr/share/pixmaps/neon.png";
-//!     let mut img = aci::ImageColorMap::new(url, Some(20), Some(40), Some(20.0), Some(-15));
-//!     //                                   image height    width     contrast    brightness
-//! 
-//!     for pixel_line in img.build_pixel_map() {  // pixel_line = [pixel, pixel, pixel]
-//!         for pixel in pixel_line {  //  pixel = ("*", (255, 255, 255), "\x1b[38;2;0;0;0m")
-//!             let (txt, _convenient_rgb, ansi_code) = pixel;
-//!             print!("{}{}", ansi_code, txt);  // Print without newline
-//!         }
-//!         img.reset_terminal_color();  // Prevent colored cursor when finished
-//!         println!();  // New line
-//!     }
-//! }
+//!use ansi_color_image as aci;
+//!
+//!fn main() {
+//!    let url = "examples/data/neon.png";
+//!    let mut img = aci::ImageColorMap::new(url, Some(20), Some(40), Some(20.0), Some(-15), false);
+//!    //                                   image height    width     contrast    brightness bg_color
+//!
+//!    for pixel_line in img.build_pixel_map() { // pixel_line = [pixel, pixel, pixel]
+//!        for pixel in pixel_line {            //  pixel = ("*", (255, 255, 255), "\x1b[38;2;0;0;0m")
+//!            let (txt, _convenient_rgb, ansi_code) = pixel;
+//!            print!("{}{}", ansi_code, txt);  // Print without newline
+//!        }
+//!        img.reset_terminal_color();  // Prevent colored cursor when finished
+//!        println!();  // New line
+//!    }
+//!}
 //! ```
 
 use image::{
@@ -34,7 +34,8 @@ pub struct ImageColorMap {
     height: Option<u32>,
     width: Option<u32>,
     contrast: Option<f32>,
-    brightness: Option<i32>
+    brightness: Option<i32>,
+    background_color: bool,
 }
 
 impl ImageColorMap {
@@ -43,7 +44,8 @@ impl ImageColorMap {
         height: Option<u32>,
         width: Option<u32>,
         contrast: Option<f32>,
-        brightness: Option<i32>
+        brightness: Option<i32>,
+        background_color: bool,
     ) -> ImageColorMap {
         let url_image = String::from(url_image);
 
@@ -53,6 +55,7 @@ impl ImageColorMap {
             width,
             contrast,
             brightness,
+            background_color,
         }
     }
 
@@ -131,14 +134,14 @@ impl ImageColorMap {
                     vec![(
                         String::from(ascii_chars[ascii_chars_index]),
                         (r, g, b),
-                        self.rgb_to_ansi(r, g, b)
+                        self.rgb_to_ansi(r, g, b, self.background_color)
                     )]
                 );
             } else {
                 pixels_map[line].push((
                     String::from(ascii_chars[ascii_chars_index]),
                     (r, g, b),
-                    self.rgb_to_ansi(r, g, b)
+                    self.rgb_to_ansi(r, g, b, self.background_color)
                 ));
             }
 
@@ -159,14 +162,27 @@ impl ImageColorMap {
         print!("\x1B[0m")
     }
 
-    fn rgb_to_ansi(&self, r: u8, g: u8, b: u8) -> String {
-        format!("\x1b[38;2;{};{};{}m", r, g, b)
+    fn rgb_to_ansi(&self, r: u8, g: u8, b: u8, bg: bool) -> String {
+        // bold           1
+        // dimmed         2 *
+        // italic         3
+        // underline      4
+        // blink          5
+        // reverse        7
+        // hidden         8
+        // strikethrough  9
+
+        // fg: 38
+        // bg: 48
+        let use_fg = 38;
+        let use_bg = 48;
+
+        let mut bg_or_fg = &use_fg;
+        if bg {bg_or_fg = &use_bg;}
+
+        format!("\x1b[{};2;{};{};{}m", bg_or_fg, r, g, b)
     }
 }
-
-// fn rgb_to_ansi(r: u8, g: u8, b: u8, text: &String) -> String {
-//     format!("\x1b[38;2;{};{};{}m{}\x1B[0m", r, g, b, text)
-// }
 
 #[cfg(test)]
 mod tests {
@@ -179,6 +195,7 @@ mod tests {
             Some(40),
             None,
             None,
+            false,
         );
         let _bpm = icm.build_pixel_map();
         let result = 2 + 2;
