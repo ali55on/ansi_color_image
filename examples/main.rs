@@ -8,6 +8,7 @@ fn main() {
     println!("\n-------\nPoe poem:\n  Cut the poem line to fit the terminal.");
     poe_poem_example();
 
+    // Using on README
     // println!("\n-------\nPoe poem:\n  It doesn't cut the poem line to fit the terminal.");
     // simple_poe_poem_example();
 }
@@ -19,8 +20,8 @@ fn neon_logo_example() {
     //                                   image height    width     contrast    brightness bg_color
 
     for pixel_line in img.build_pixel_map() { // pixel_line = [pixel, pixel, pixel]
-        for pixel in pixel_line {            //  pixel = ("*", (255, 255, 255), "\x1b[38;2;0;0;0m")
-            let (txt, _convenient_rgb, ansi_code) = pixel;
+        for pixel in pixel_line {            //  pixel = ("*", "\x1b[38;2;0;0;0m")
+            let (txt, ansi_code) = pixel;
             print!("{}{}", ansi_code, txt);  // Print without newline
         }
         img.reset_terminal_color();  // Prevent colored cursor when finished
@@ -56,7 +57,7 @@ What this grim, ungainly, ghastly, gaunt, and ominous bird of yore
     for (pixel_line, poem_line) in img.build_pixel_map().iter().zip(poem.split("\n")) {
         // IMAGE:
         for pixel in pixel_line {
-            let (_txt, _, ansi_code) = pixel;
+            let (_txt, ansi_code) = pixel;
             print!("{} ", ansi_code);  // shows only colors without text character
         }
         // POEM:
@@ -94,7 +95,7 @@ What this grim, ungainly, ghastly, gaunt, and ominous bird of yore
     for (pixel_line, poem_line) in img.build_pixel_map().iter().zip(poem.split("\n")) {
         // IMAGE:
         for pixel in pixel_line {
-            let (_txt, _, ansi_code) = pixel;
+            let (_txt, ansi_code) = pixel;
             print!("{} ", ansi_code);
         }
         // POEM:

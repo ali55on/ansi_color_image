@@ -13,8 +13,8 @@
 //!    //                                   image height    width     contrast    brightness bg_color
 //!
 //!    for pixel_line in img.build_pixel_map() { // pixel_line = [pixel, pixel, pixel]
-//!        for pixel in pixel_line {            //  pixel = ("*", (255, 255, 255), "\x1b[38;2;0;0;0m")
-//!            let (txt, _convenient_rgb, ansi_code) = pixel;
+//!        for pixel in pixel_line {            //  pixel = ("*", "\x1b[38;2;0;0;0m")
+//!            let (txt, ansi_code) = pixel;
 //!            print!("{}{}", ansi_code, txt);  // Print without newline
 //!        }
 //!        img.reset_terminal_color();  // Prevent colored cursor when finished
@@ -59,7 +59,7 @@ impl ImageColorMap {
         }
     }
 
-    pub fn build_pixel_map(&mut self) -> Vec<Vec<(String, (u8, u8, u8), String)>> {
+    pub fn build_pixel_map(&mut self) -> Vec<Vec<(String, String)>> {
         // Image
         let img = open(&self.url_image).unwrap();
 
@@ -108,10 +108,10 @@ impl ImageColorMap {
 
         // Return Map
         // [
-        //      [("*", (1, 2, 3)), ("*", (1, 2, 3)), ("*", (1, 2, 3))],
-        //      [("*", (1, 2, 3)), ("*", (1, 2, 3)), ("*", (1, 2, 3))],
+        //      [("*", "\x1b[38;2;0;0;0m"), ("*", "\x1b[38;2;0;0;0m")],
+        //      [("*", "\x1b[38;2;0;0;0m"), ("*", "\x1b[38;2;0;0;0m")],
         // ]
-        let mut pixels_map: Vec<Vec<(String, (u8, u8, u8), String)>> = Vec::new();
+        let mut pixels_map: Vec<Vec<(String, String)>> = Vec::new();
         let mut count = 1;
         let mut line = 0;
 
@@ -133,14 +133,12 @@ impl ImageColorMap {
                 pixels_map.push(
                     vec![(
                         String::from(ascii_chars[ascii_chars_index]),
-                        (r, g, b),
                         self.rgb_to_ansi(r, g, b, self.background_color)
                     )]
                 );
             } else {
                 pixels_map[line].push((
                     String::from(ascii_chars[ascii_chars_index]),
-                    (r, g, b),
                     self.rgb_to_ansi(r, g, b, self.background_color)
                 ));
             }
