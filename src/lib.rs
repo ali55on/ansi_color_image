@@ -108,8 +108,8 @@ impl ImageColorMap {
 
         // Return Map
         // [
-        //      [("*", "\x1b[38;2;0;0;0m"), ("*", "\x1b[38;2;0;0;0m")],
-        //      [("*", "\x1b[38;2;0;0;0m"), ("*", "\x1b[38;2;0;0;0m")],
+        //      [("\x1b[38;2;0;0;0m", "*"), ("\x1b[38;2;0;0;0m", "#")],
+        //      [("\x1b[38;2;0;0;0m", "@"), ("\x1b[38;2;0;0;0m", ";")],
         // ]
         let mut pixels_map: Vec<Vec<(String, String)>> = Vec::new();
         let mut count = 1;
@@ -132,14 +132,14 @@ impl ImageColorMap {
             if count == 1 {
                 pixels_map.push(
                     vec![(
-                        String::from(ascii_chars[ascii_chars_index]),
-                        self.rgb_to_ansi(r, g, b, self.background_color)
+                        self.rgb_to_ansi(r, g, b, self.background_color),
+                        String::from(ascii_chars[ascii_chars_index])
                     )]
                 );
             } else {
                 pixels_map[line].push((
-                    String::from(ascii_chars[ascii_chars_index]),
-                    self.rgb_to_ansi(r, g, b, self.background_color)
+                    self.rgb_to_ansi(r, g, b, self.background_color),
+                    String::from(ascii_chars[ascii_chars_index])
                 ));
             }
 
