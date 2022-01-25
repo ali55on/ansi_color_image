@@ -49,13 +49,13 @@ What this grim, ungainly, ghastly, gaunt, and ominous bird of yore
 ...
 
 (By Edgar Allan Poe)";
-
-    let mut img = aci::ImageColorMap::new(
-        "examples/data/poe.png", Some(20), Some(40), None, None, true);
+    let url = "examples/data/poe.png";
+    let mut img = aci::ImageColorMap::new(url, Some(20), Some(40), None, None, true);
+    //                                   image height    width                 bg_color
     for (pixel_line, poem_line) in img.build_pixel_map().iter().zip(poem.split("\n")) {
         // IMAGE:
         for pixel in pixel_line {
-            let (_, _, ansi_code) = pixel;
+            let (_txt, _, ansi_code) = pixel;
             print!("{} ", ansi_code);  // shows only colors without text character
         }
         // POEM:
