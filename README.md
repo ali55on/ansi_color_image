@@ -12,15 +12,15 @@ use ansi_color_image as aci;
 fn main() {
     let url = "examples/data/neon.png";
     let mut img = aci::ImageColorMap::new(url, Some(20), Some(40), Some(20.0), Some(-15), false);
-    //                                   image height    width     contrast    brightness bg_color
-
-    for pixel_line in img.build_pixel_map() { // pixel_line = [pixel, pixel, pixel]
-        for pixel in pixel_line {            //  pixel = ("\x1b[38;2;0;0;0m", "*")
-            let (ansi_code, txt) = pixel;
-            print!("{}{}", ansi_code, txt);  // Print without newline
-        }
-        img.reset_terminal_color();  // Prevent colored cursor when finished
-        println!();  // New line
+                                     //  image height    width     contrast    brightness bg_color
+                                    //_________
+    for pixel_line in img.build_pixel_map() { // pixel_line: [pixel, pixel, pixel]
+        for pixel in pixel_line {            //  pixel:      ("\x1b[38;2;0;0;0m", "*")
+            let (ansi_code, txt) = pixel;   //
+            print!("{}{}", ansi_code, txt);// Print without newline
+        }                                 //
+        img.reset_terminal_color();      //   Prevent colored cursor when finished
+        println!();                     //    New line
     }
 }
 ```
@@ -57,7 +57,7 @@ for (pixel_line, poem_line) in img.build_pixel_map().iter().zip(poem.split("\n")
     for pixel in pixel_line {
         let (ansi_code, _txt) = pixel;
         print!("{} ", ansi_code);  // shows only colors without text character
-    }
+    }                             // Note: 'ImageColorMap->background_color' is 'true'
     // POEM:
     img.reset_terminal_color();
     println!(" {}", poem_line);
