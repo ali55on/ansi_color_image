@@ -10,7 +10,7 @@ Example:
 use ansi_color_image as aci;
 
 fn main() {
-    let url = "examples/data/neon.png";// url  height    width     contrast    brightness bg_color
+    let url = "examples/data/neon.png"; //url  height    width     contrast    brightness bg_color
     let mut img = aci::ImageColorMap::new(url, Some(20), Some(40), Some(20.0), Some(-15), false);
 
     for pixel_line in img.build_pixel_map() { // pixel_line: [pixel, pixel, pixel]
@@ -48,15 +48,15 @@ What this grim, ungainly, ghastly, gaunt, and ominous bird of yore
 ...
 
 (By Edgar Allan Poe)";
-let url = "examples/data/poe.png";
+let url = "examples/data/poe.png"; // url  height    width                 bg_color
 let mut img = aci::ImageColorMap::new(url, Some(20), Some(40), None, None, true);
-//                                   image height    width                 bg_color
+
 for (pixel_line, poem_line) in img.build_pixel_map().iter().zip(poem.split("\n")) {
     // IMAGE:
     for pixel in pixel_line {
-        let (ansi_code, _txt) = pixel;
-        print!("{} ", ansi_code);  // shows only colors without text character
-    }                             // Note: 'ImageColorMap->background_color' is 'true'
+        let (ansi_code, _txt) = pixel; // 'pixel.0'
+        print!("{} ", ansi_code);     // shows only colors without text character
+    }                                // Note: 'ImageColorMap->background_color' is 'true'
     // POEM:
     img.reset_terminal_color();
     println!(" {}", poem_line);
