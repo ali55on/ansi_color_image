@@ -9,11 +9,11 @@
 //!
 //!fn main() {
 //!    let mut img = aci::ImageColorMap::new("examples/data/neon.png");
-//!    img.dimensions(40, 20);                   // Width and height.
-//!    img.filter(20.0, -15);                    // Contrast and brightness.
-//!                                              //
-//!    for pixel_line in img.build_pixel_map() { // pixel_line = [pixel, pixel, pixel]
-//!        println!("{}", pixel_line);           // pixel = "\x1b[38;2;0;0;0m*"
+//!    img.dimensions(40, 20); // Width and height
+//!    img.filter(20.0, -15);  // Contrast and brightness
+//!
+//!    for line in img.build_pixel_map() {
+//!        println!("{}", line);
 //!    }
 //!}
 //! ```

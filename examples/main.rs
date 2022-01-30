@@ -16,11 +16,11 @@ fn main() {
 #[allow(dead_code)]
 fn neon_logo_example() {
     let mut img = aci::ImageColorMap::new("examples/data/neon.png");
-    img.dimensions(40, 20);                   // Width and height.
-    img.filter(20.0, -15);                    // Contrast and brightness.
-                                              //
-    for pixel_line in img.build_pixel_map() { // pixel_line = [pixel, pixel, pixel]
-        println!("{}", pixel_line);           // pixel = "\x1b[38;2;0;0;0m*"
+    img.dimensions(40, 20); // Width and height
+    img.filter(20.0, -15);  // Contrast and brightness
+
+    for line in img.build_pixel_map() {
+        println!("{}", line);
     }
 }
 
@@ -50,9 +50,9 @@ What this grim, ungainly, ghastly, gaunt, and ominous bird of yore
     img.show_background_color(true);
     img.hide_foreground_character(true);
 
-    for (pixel_line, poem_line) in img.build_pixel_map().iter().zip(poem.split("\n")) {
+    for (img_line, poem_line) in img.build_pixel_map().iter().zip(poem.split("\n")) {
         // IMAGE:
-        print!("{}", pixel_line);  // Print without newline
+        print!("{}", img_line);  // Print without newline
         // POEM:
         println!(" {}", poem_line);
     }
@@ -85,9 +85,9 @@ What this grim, ungainly, ghastly, gaunt, and ominous bird of yore
     img.show_background_color(true);
     img.hide_foreground_character(true);
 
-    for (pixel_line, poem_line) in img.build_pixel_map().iter().zip(poem.split("\n")) {
+    for (img_line, poem_line) in img.build_pixel_map().iter().zip(poem.split("\n")) {
         // IMAGE:
-        print!("{}", pixel_line);
+        print!("{}", img_line);
 
         // Terminal size line
         let tput_command = Command::new("tput").arg("cols").output().expect("tput error");
