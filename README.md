@@ -10,16 +10,17 @@ Example:
 use ansi_color_image as aci;
 
 fn main() {
-    let url = "examples/data/neon.png"; //url  height    width     contrast    brightness bg_color
-    let mut img = aci::ImageColorMap::new(url, Some(20), Some(40), Some(20.0), Some(-15), false);
-
-    for pixel_line in img.build_pixel_map() { // pixel_line: [pixel, pixel, pixel]
-        for pixel in pixel_line {            //  pixel:      ("\x1b[38;2;0;0;0m", "*")
-            let (ansi_code, txt) = pixel;   //
-            print!("{}{}", ansi_code, txt);// Print without newline
-        }                                 //
-        img.reset_terminal_color();      // Prevent colored cursor when finished
-        println!();                     //  New line
+    let mut img = aci::ImageColorMap::new("examples/data/neon.png");
+    img.dimensions(40, 20);                   // Width and height.
+    img.filter(20.0, -15);                    // Contrast and brightness.
+                                              //
+    for pixel_line in img.build_pixel_map() { // pixel_line = [pixel, pixel, pixel]
+        for pixel in pixel_line {             // pixel = ("\x1b[38;2;0;0;0m", "*")
+            let (ansi_code, txt) = pixel;     //
+            print!("{}{}", ansi_code, txt);   // Print without newline.
+        }                                     //
+        img.reset_terminal_color();           // Prevent colored cursor when finished.
+        println!();                           // New line.
     }
 }
 ```
@@ -48,18 +49,18 @@ What this grim, ungainly, ghastly, gaunt, and ominous bird of yore
 ...
 
 (By Edgar Allan Poe)";
-let url = "examples/data/poe.png"; // url  height    width                 bg_color
-let mut img = aci::ImageColorMap::new(url, Some(20), Some(40), None, None, true);
+    let mut img = aci::ImageColorMap::new("examples/data/poe.png");
+    img.background_color(true);
 
-for (pixel_line, poem_line) in img.build_pixel_map().iter().zip(poem.split("\n")) {
-    // IMAGE:
-    for pixel in pixel_line {
-        let (ansi_code, _txt) = pixel; // 'pixel.0'
-        print!("{} ", ansi_code);     // shows only colors without text character
-    }                                // Note: 'ImageColorMap->background_color' is 'true'
-    // POEM:
-    img.reset_terminal_color();
-    println!(" {}", poem_line);
-}
+    for (pixel_line, poem_line) in img.build_pixel_map().iter().zip(poem.split("\n")) {
+        // IMAGE:
+        for pixel in pixel_line {
+            let (ansi_code, _txt) = pixel;
+            print!("{} ", ansi_code);  // shows only colors without text character
+        }
+        // POEM:
+        img.reset_terminal_color();
+        println!(" {}", poem_line);
+    }
 ```
 ![Image](data/screenshot_02.png "screenshot")

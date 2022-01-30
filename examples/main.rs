@@ -15,17 +15,17 @@ fn main() {
 
 #[allow(dead_code)]
 fn neon_logo_example() {
-    let url = "examples/data/neon.png";
-    let mut img = aci::ImageColorMap::new(url, Some(20), Some(40), Some(20.0), Some(-15), false);
-    //                                   image height    width     contrast    brightness bg_color
-
+    let mut img = aci::ImageColorMap::new("examples/data/neon.png");
+    img.dimensions(40, 20);                   // Width and height.
+    img.filter(20.0, -15);                    // Contrast and brightness.
+                                              //
     for pixel_line in img.build_pixel_map() { // pixel_line = [pixel, pixel, pixel]
-        for pixel in pixel_line {            //  pixel = ("\x1b[38;2;0;0;0m", "*")
-            let (ansi_code, txt) = pixel;
-            print!("{}{}", ansi_code, txt);  // Print without newline
-        }
-        img.reset_terminal_color();  // Prevent colored cursor when finished
-        println!();  // New line
+        for pixel in pixel_line {             // pixel = ("\x1b[38;2;0;0;0m", "*")
+            let (ansi_code, txt) = pixel;     //
+            print!("{}{}", ansi_code, txt);   // Print without newline.
+        }                                     //
+        img.reset_terminal_color();           // Prevent colored cursor when finished.
+        println!();                           // New line.
     }
 }
 
@@ -51,9 +51,9 @@ What this grim, ungainly, ghastly, gaunt, and ominous bird of yore
 ...
 
 (By Edgar Allan Poe)";
-    let url = "examples/data/poe.png";
-    let mut img = aci::ImageColorMap::new(url, Some(20), Some(40), None, None, true);
-    //                                   image height    width                 bg_color
+    let mut img = aci::ImageColorMap::new("examples/data/poe.png");
+    img.background_color(true);
+
     for (pixel_line, poem_line) in img.build_pixel_map().iter().zip(poem.split("\n")) {
         // IMAGE:
         for pixel in pixel_line {
@@ -88,10 +88,10 @@ What this grim, ungainly, ghastly, gaunt, and ominous bird of yore
 ...
 
 (By Edgar Allan Poe)";
-    
-    let image_width = 40;
-    let mut img = aci::ImageColorMap::new(
-        "examples/data/poe.png", Some(20), Some(image_width), None, None, true);
+
+    let mut img = aci::ImageColorMap::new("examples/data/poe.png");
+    img.background_color(true);
+
     for (pixel_line, poem_line) in img.build_pixel_map().iter().zip(poem.split("\n")) {
         // IMAGE:
         for pixel in pixel_line {
@@ -109,7 +109,7 @@ What this grim, ungainly, ghastly, gaunt, and ominous bird of yore
         let (mut line, mut count) = (String::new(), 1);
         for c in poem_line.chars() {
             line.push(c);  //                      1: the space on println!
-            if count == (term_size - image_width - 1) {break;} else {count += 1;}
+            if count == (term_size - 40 - 1) {break;} else {count += 1;}
         }
         println!(" {}", line);
     }

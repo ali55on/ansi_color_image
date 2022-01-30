@@ -8,102 +8,82 @@
 //!use ansi_color_image as aci;
 //!
 //!fn main() {
-//!    let url = "examples/data/neon.png";
-//!    let mut img = aci::ImageColorMap::new(url, Some(20), Some(40), Some(20.0), Some(-15), false);
-//!    //                                   image height    width     contrast    brightness bg_color
-//!
+//!    let mut img = aci::ImageColorMap::new("examples/data/neon.png");
+//!    img.dimensions(40, 20);                   // Width and height.
+//!    img.filter(20.0, -15);                    // Contrast and brightness.
+//!                                              //
 //!    for pixel_line in img.build_pixel_map() { // pixel_line = [pixel, pixel, pixel]
-//!        for pixel in pixel_line {            //  pixel = ("*", "\x1b[38;2;0;0;0m")
-//!            let (txt, ansi_code) = pixel;
-//!            print!("{}{}", ansi_code, txt);  // Print without newline
-//!        }
-//!        img.reset_terminal_color();  // Prevent colored cursor when finished
-//!        println!();  // New line
+//!        for pixel in pixel_line {             // pixel = ("\x1b[38;2;0;0;0m", "*")
+//!            let (ansi_code, txt) = pixel;     //
+//!            print!("{}{}", ansi_code, txt);   // Print without newline.
+//!        }                                     //
+//!        img.reset_terminal_color();           // Prevent colored cursor when finished.
+//!        println!();                           // New line.
 //!    }
 //!}
 //! ```
 
 use image::{
-    GenericImageView, open,  // Rgba, DynamicImage
+    open,  // GenericImageView, Rgba, DynamicImage
     imageops::{FilterType, resize},
 };
 
 #[derive(Debug)]
 pub struct ImageColorMap {
     url_image: String,
-    height: Option<u32>,
-    width: Option<u32>,
-    contrast: Option<f32>,
-    brightness: Option<i32>,
+    height: u32,
+    width: u32,
+    contrast: f32,
+    brightness: i32,
     background_color: bool,
 }
 
 impl ImageColorMap {
     pub fn new(
-        url_image: &str, 
-        height: Option<u32>,
-        width: Option<u32>,
-        contrast: Option<f32>,
-        brightness: Option<i32>,
-        background_color: bool,
+        url_image: &str,
     ) -> ImageColorMap {
         let url_image = String::from(url_image);
 
         ImageColorMap {
             url_image,
-            height,
-            width,
-            contrast,
-            brightness,
-            background_color,
+            height: 20,
+            width: 40,
+            contrast: 0.0,
+            brightness: 0,
+            background_color: false,
         }
+    }
+
+    pub fn dimensions(&mut self, width: u32, height: u32) {
+        self.width = width;
+        self.height = height;
+    }
+
+    pub fn filter(&mut self, contrast: f32, brightness: i32) {
+        self.contrast = contrast;
+        self.brightness = brightness;
+    }
+
+    pub fn background_color(&mut self, background_color: bool) {
+        self.background_color = background_color;
     }
 
     pub fn build_pixel_map(&mut self) -> Vec<Vec<(String, String)>> {
         // Image
         let img = open(&self.url_image).unwrap();
 
-        // Original size
-        let (original_width, original_height) = img.dimensions();
-
-        // Height
-        if let Some(w) = self.height {
-            self.height = Some(w);
-        } else {
-            self.height = Some(original_height);
-        }
-
-        // Width
-        if let Some(w) = self.width {
-            self.width = Some(w);
-        } else {
-            self.width = Some(original_width);
-        }
-
         // Resize
         let mut new_img = resize(
-            &img, self.width.unwrap(), self.height.unwrap(), FilterType::Triangle);
+            &img, self.width, self.height, FilterType::Triangle);
         
         // Contrast
-        if let Some(c) = self.contrast {
-            self.contrast = Some(c);
-        } else {
-            self.contrast = None;
-        }
-
-        if let Some(c) = self.contrast {
-            new_img = image::imageops::contrast(&new_img, c);
+        if self.contrast != 0.0 {
+            new_img = image::imageops::contrast(&new_img, self.contrast);
         }
 
         // Brightness
-        if let Some(b) = self.brightness {
-            self.brightness = Some(b);
-        } else {
-            self.brightness = None;
-        }
-
-        if let Some(b) = self.brightness {
-            new_img = image::imageops::colorops::brighten(&new_img, b);
+        if self.brightness != 0 {
+            new_img = image::imageops::colorops::brighten(&new_img, self.brightness);
         }
 
         // Return Map
@@ -118,33 +98,33 @@ impl ImageColorMap {
         for &pixel in new_img.pixels() {
             let rgba = pixel;  // Rgba([3, 15, 19, 14])
             let [r, g, b, _a] = rgba.0;
+
+            let map_ascii_chars = [
+                " ", " ", ":", "i", "/", "n", "k", "m", "0", "@", "#"];
             
-            // https://github.com/EbonJaeger/asciifyer/blob/main/src/lib.rs
-            let brightness_ = (
+            let pixel_brightness = (  // github.com/EbonJaeger/asciifyer/blob/main/src/lib.rs
                 (0.2126 * r as f64) + (0.7152 * g as f64) + (0.0722 * b as f64)) as f64;
 
-            let ascii_chars = [" ", " ", ":", "i", "/", "n", "k", "m", "0", "@", "#"];
-            // let ascii_chars = ["#", "@", "0", "m", "k", "n", "/", "i", ":", " ", " "];
-            let ascii_chars_index =(
-                (brightness_ / 255.0) * (ascii_chars.len() - 1) as f64).round() as usize;
+            let ascii_chars_index = (
+                (pixel_brightness / 255.0) * (map_ascii_chars.len() - 1) as f64).round() as usize;
 
             // Update map
             if count == 1 {
                 pixels_map.push(
                     vec![(
                         self.rgb_to_ansi(r, g, b, self.background_color),
-                        String::from(ascii_chars[ascii_chars_index])
+                        String::from(map_ascii_chars[ascii_chars_index])
                     )]
                 );
             } else {
                 pixels_map[line].push((
                     self.rgb_to_ansi(r, g, b, self.background_color),
-                    String::from(ascii_chars[ascii_chars_index])
+                    String::from(map_ascii_chars[ascii_chars_index])
                 ));
             }
 
             // Update loop config
-            if count == self.width.unwrap() as usize {
+            if count == self.width as usize {
                 line += 1;
                 count = 1;
             } else {
@@ -161,17 +141,6 @@ impl ImageColorMap {
     }
 
     fn rgb_to_ansi(&self, r: u8, g: u8, b: u8, bg: bool) -> String {
-        // bold           1
-        // dimmed         2 *
-        // italic         3
-        // underline      4
-        // blink          5
-        // reverse        7
-        // hidden         8
-        // strikethrough  9
-
-        // fg: 38
-        // bg: 48
         let use_fg = 38;
         let use_bg = 48;
 
@@ -184,18 +153,9 @@ impl ImageColorMap {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    // use super::*;
     #[test]
     fn it_works() {
-        let mut icm = ImageColorMap::new(
-            "/usr/share/pixmaps/neon.png",
-            Some(20),
-            Some(40),
-            None,
-            None,
-            false,
-        );
-        let _bpm = icm.build_pixel_map();
         let result = 2 + 2;
         assert_eq!(result, 4);
     }
