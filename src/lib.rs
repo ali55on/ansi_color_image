@@ -13,12 +13,7 @@
 //!    img.filter(20.0, -15);                    // Contrast and brightness.
 //!                                              //
 //!    for pixel_line in img.build_pixel_map() { // pixel_line = [pixel, pixel, pixel]
-//!        for pixel in pixel_line {             // pixel = ("\x1b[38;2;0;0;0m", "*")
-//!            let (ansi_code, txt) = pixel;     //
-//!            print!("{}{}", ansi_code, txt);   // Print without newline.
-//!        }                                     //
-//!        img.reset_terminal_color();           // Prevent colored cursor when finished.
-//!        println!();                           // New line.
+//!        println!("{}", pixel_line);           // pixel = "\x1b[38;2;0;0;0m*"
 //!    }
 //!}
 //! ```
@@ -35,7 +30,8 @@ pub struct ImageColorMap {
     width: u32,
     contrast: f32,
     brightness: i32,
-    background_color: bool,
+    show_background_color: bool,
+    hide_foreground_character: bool,
 }
 
 impl ImageColorMap {
@@ -50,7 +46,8 @@ impl ImageColorMap {
             width: 40,
             contrast: 0.0,
             brightness: 0,
-            background_color: false,
+            show_background_color: false,
+            hide_foreground_character: false,
         }
     }
 
@@ -64,11 +61,15 @@ impl ImageColorMap {
         self.brightness = brightness;
     }
 
-    pub fn background_color(&mut self, background_color: bool) {
-        self.background_color = background_color;
+    pub fn show_background_color(&mut self, show: bool) {
+        self.show_background_color = show;
     }
 
-    pub fn build_pixel_map(&mut self) -> Vec<Vec<(String, String)>> {
+    pub fn hide_foreground_character(&mut self, hide: bool) {
+        self.hide_foreground_character = hide;
+    }
+
+    pub fn build_pixel_map(&mut self) -> Vec<String> {
         // Image
         let img = open(&self.url_image).unwrap();
 
@@ -91,36 +92,49 @@ impl ImageColorMap {
         //      [("\x1b[38;2;0;0;0m", "*"), ("\x1b[38;2;0;0;0m", "#")],
         //      [("\x1b[38;2;0;0;0m", "@"), ("\x1b[38;2;0;0;0m", ";")],
         // ]
-        let mut pixels_map: Vec<Vec<(String, String)>> = Vec::new();
+        let mut pixels_map: Vec<String> = Vec::new();
         let mut count = 1;
         let mut line = 0;
 
         for &pixel in new_img.pixels() {
+            // Rgb
             let rgba = pixel;  // Rgba([3, 15, 19, 14])
             let [r, g, b, _a] = rgba.0;
 
-            let map_ascii_chars = [
+            // ASCII Map
+            let map_ascii_str = [
                 " ", " ", ":", "i", "/", "n", "k", "m", "0", "@", "#"];
-            
             let pixel_brightness = (  // github.com/EbonJaeger/asciifyer/blob/main/src/lib.rs
                 (0.2126 * r as f64) + (0.7152 * g as f64) + (0.0722 * b as f64)) as f64;
+            let ascii_str_index = (
+                (pixel_brightness / 255.0) * (map_ascii_str.len() - 1) as f64).round() as usize;
 
-            let ascii_chars_index = (
-                (pixel_brightness / 255.0) * (map_ascii_chars.len() - 1) as f64).round() as usize;
+            // Foreground character
+            let mut foreground_character = String::from(" ");
+            if !self.hide_foreground_character {
+                foreground_character = String::from(map_ascii_str[ascii_str_index]);
+            }
+
+            // ASCII
+            let mut ascii_str = format!(
+                "{}{}",
+                self.rgb_to_ansi(r, g, b, self.show_background_color),
+                foreground_character
+            );
+            if count == self.width as usize {
+                ascii_str = format!(
+                    "{}{}\x1B[0m",
+                    self.rgb_to_ansi(r, g, b, self.show_background_color),
+                    foreground_character
+                );
+            }
 
             // Update map
-            if count == 1 {
-                pixels_map.push(
-                    vec![(
-                        self.rgb_to_ansi(r, g, b, self.background_color),
-                        String::from(map_ascii_chars[ascii_chars_index])
-                    )]
-                );
-            } else {
-                pixels_map[line].push((
-                    self.rgb_to_ansi(r, g, b, self.background_color),
-                    String::from(map_ascii_chars[ascii_chars_index])
-                ));
+            if count == 1 {  // First vector item
+                pixels_map.push(String::from(ascii_str));
+
+            } else {  // From the second to the last item in the vector
+                pixels_map[line].push_str(&ascii_str);
             }
 
             // Update loop config
@@ -134,10 +148,6 @@ impl ImageColorMap {
 
         // Return
         pixels_map
-    }
-
-    pub fn reset_terminal_color(&self){
-        print!("\x1B[0m")
     }
 
     fn rgb_to_ansi(&self, r: u8, g: u8, b: u8, bg: bool) -> String {

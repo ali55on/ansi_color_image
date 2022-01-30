@@ -20,12 +20,7 @@ fn neon_logo_example() {
     img.filter(20.0, -15);                    // Contrast and brightness.
                                               //
     for pixel_line in img.build_pixel_map() { // pixel_line = [pixel, pixel, pixel]
-        for pixel in pixel_line {             // pixel = ("\x1b[38;2;0;0;0m", "*")
-            let (ansi_code, txt) = pixel;     //
-            print!("{}{}", ansi_code, txt);   // Print without newline.
-        }                                     //
-        img.reset_terminal_color();           // Prevent colored cursor when finished.
-        println!();                           // New line.
+        println!("{}", pixel_line);           // pixel = "\x1b[38;2;0;0;0m*"
     }
 }
 
@@ -52,16 +47,13 @@ What this grim, ungainly, ghastly, gaunt, and ominous bird of yore
 
 (By Edgar Allan Poe)";
     let mut img = aci::ImageColorMap::new("examples/data/poe.png");
-    img.background_color(true);
+    img.show_background_color(true);
+    img.hide_foreground_character(true);
 
     for (pixel_line, poem_line) in img.build_pixel_map().iter().zip(poem.split("\n")) {
         // IMAGE:
-        for pixel in pixel_line {
-            let (ansi_code, _txt) = pixel;
-            print!("{} ", ansi_code);  // shows only colors without text character
-        }
+        print!("{}", pixel_line);  // Print without newline
         // POEM:
-        img.reset_terminal_color();
         println!(" {}", poem_line);
     }
 }
@@ -90,16 +82,12 @@ What this grim, ungainly, ghastly, gaunt, and ominous bird of yore
 (By Edgar Allan Poe)";
 
     let mut img = aci::ImageColorMap::new("examples/data/poe.png");
-    img.background_color(true);
+    img.show_background_color(true);
+    img.hide_foreground_character(true);
 
     for (pixel_line, poem_line) in img.build_pixel_map().iter().zip(poem.split("\n")) {
         // IMAGE:
-        for pixel in pixel_line {
-            let (ansi_code, _txt) = pixel;
-            print!("{} ", ansi_code);
-        }
-        // POEM:
-        img.reset_terminal_color();
+        print!("{}", pixel_line);
 
         // Terminal size line
         let tput_command = Command::new("tput").arg("cols").output().expect("tput error");
@@ -111,6 +99,8 @@ What this grim, ungainly, ghastly, gaunt, and ominous bird of yore
             line.push(c);  //                      1: the space on println!
             if count == (term_size - 40 - 1) {break;} else {count += 1;}
         }
+
+        // POEM:
         println!(" {}", line);
     }
 }
