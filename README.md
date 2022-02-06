@@ -1,6 +1,6 @@
 ## ansi_color_image
 
-Lib to create figures with text characters and ANSI colors from an image file.
+Rust lib to create figures with text characters and ANSI colors from an image file.
 
 https://github.com/w-a-gomes/ansi_color_image
 
