@@ -8,9 +8,23 @@ fn main() {
     println!("\n-------\nPoe poem:\n  Cut the poem line to fit the terminal.");
     poe_poem_example();
 
+    println!("\n-------\nLinux logo");
+    linux_logo_example();
+
     // Using on README
     // println!("\n-------\nPoe poem:\n  It doesn't cut the poem line to fit the terminal.");
     // simple_poe_poem_example();
+
+}
+
+fn linux_logo_example() {
+    let mut img = aci::ImageColorMap::new("examples/data/linux.png");
+    img.dimensions(50, 25); // Width and height
+    img.filter(20.0, -15);  // Contrast and brightness
+
+    for line in img.build_pixel_map() {
+        println!("{}", line);
+    }
 }
 
 #[allow(dead_code)]
