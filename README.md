@@ -2,7 +2,7 @@
 
 Rust lib to create figures with text characters and ANSI colors from an image file
 
-https://github.com/ali55on/ansi_color_image
+https://github.com/w-a-gomes/ansi_color_image
 
 Example:
 
